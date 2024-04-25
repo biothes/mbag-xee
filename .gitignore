@@ -10,6 +10,8 @@ ipython_config.py
 *.jpg
 *.pgw
 *.shp
+*.sld
+*.lyr
 *.cpg
 *.dbf
 *.prj
@@ -20,3 +22,5 @@ ipython_config.py
 
 # QGIS
 *.qgz
+
+*/__pycache__
