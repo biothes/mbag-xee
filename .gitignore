@@ -16,3 +16,6 @@ ipython_config.py
 *.shx
 *.gpkg
 *.tif
+
+# QGIS
+*.qgz
