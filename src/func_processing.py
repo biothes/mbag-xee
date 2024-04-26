@@ -169,11 +169,6 @@ def bare_soil_calc(gdf):
     'R3_2023': ('2023-05-11', '2023-06-10'),
     'R4_2023': ('2023-06-21', '2023-07-15')}
 
-    #Function to calculate area of the geoms
-    def calculate_area(geoms):
-        # This is a placeholder; actual implementation depends on the geometries
-        return geoms.area()  # Replace with actual area calculation
-
     # Initialize a list to store the results
     results = []
 
