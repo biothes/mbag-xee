@@ -24,4 +24,6 @@ ipython_config.py
 # QGIS
 *.qgz
 
+grasland.ipynb
+
 
