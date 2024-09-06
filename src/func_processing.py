@@ -123,14 +123,14 @@ def extract_polygon_ts(ts_array, pd_row, buffer, crs):
     if geometry.is_empty:
         print('Empty geometry')
         df_ndvi['ndvi'] = np.nan
-        df_ndvi['OIDN'] = np.nan
+        df_ndvi['REF_ID'] = np.nan
         df_ndvi['pointid'] = np.nan
         return df_ndvi
     
     elif not geometry.is_valid:
         print('Invalid geometry')
         df_ndvi['ndvi'] = np.nan
-        df_ndvi['OIDN'] = np.nan
+        df_ndvi['REF_ID'] = np.nan
         df_ndvi['pointid'] = np.nan
         return df_ndvi
     
@@ -140,7 +140,7 @@ def extract_polygon_ts(ts_array, pd_row, buffer, crs):
 
         # Create output dataframe
         df_ndvi['ndvi'] = ndvi
-        df_ndvi.insert(0, 'OIDN', pd_row.OIDN)
+        df_ndvi.insert(0, 'REF_ID', pd_row.REF_ID)
         df_ndvi.insert(1, 'pointid', pd_row.pointid)
         #df_ndvi.insert(-1, 'geometry', pd_row.geometry)
 
