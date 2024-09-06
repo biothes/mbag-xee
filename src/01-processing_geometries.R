@@ -48,7 +48,7 @@ telpunt_to_telcirkel <- function(input_csv, buffer_distance = 300) {
   return(df_pts_buffered)
 }
 
-
+#--
 
 intersect_parcels <- function(layer_name, telcirkels) {
   
