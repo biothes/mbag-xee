@@ -4,12 +4,15 @@ Maken van vegetatie-index tijdreeksen voor telpunten met gebruik van [Xarray Ear
 ## Repository structure
 ```
 ├───data
-│   ├───01-telcirkels
-│   ├───02-percelen
-│   └───03-percelen-clipped
+│   ├───raw
+│   ├───processed
 ├───outputs
 │   └───output_analysis
 └───src
-    ├───xee-timeseries.ipynb
+    ├───01-processing_geometries.R
+    ├───02-xee-timeseries.ipynb
+    ├───func_mask.py
+    ├───func_processing.py
+    ├───bare_soil_eda.R
     └───...
 ```
