@@ -173,6 +173,7 @@ def ts_telcirkel_per_jaar(raster, gdf, year, pointid, df_ts):
             df_ts = pd.concat([df_ts, df_long], axis=0)
 
     return df_ts
+
 #----------------------------------------------------------------------------------------------------
 def bare_soil_calc(gdf):
     '''
