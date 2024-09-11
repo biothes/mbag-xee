@@ -86,7 +86,7 @@ intersect_parcels <- function(layer_name, telcirkels) {
     .quiet = TRUE
   )
   
-  # 3) Buffer (to remove line geometries)
+  # 3) Buffer (to remove line geometries) -> mag weg wanneer kaartlaag opgekuist is
   result <- qgis_run_algorithm(
     "native:buffer",
     INPUT = result$OUTPUT,
@@ -127,7 +127,6 @@ Q_schijf_output <- 'Q:/Projects/PRJ_MBAG/4d_bwk/tijdsreeksen'
 
 intersect_parcels(layer_name = 'landbouwgebruikspercelen_cut_bo_2022', telcirkels = df_tc)
 intersect_parcels(layer_name = 'landbouwgebruikspercelen_cut_bo_2023', telcirkels = df_tc)
-
 
 
 

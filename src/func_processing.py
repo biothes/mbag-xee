@@ -104,7 +104,7 @@ def time_series(start, end, start_wdw, end_wdw, shape, vi_arg, sg):
 
 
 #----------------------------------------------------------------------------------------------------
-def extract_polygon_ts(ts_array, pd_row, buffer, crs):
+def extract_polygon_ts(ts_array, pd_row, buffer, crs, time_window):
     '''
     Function for calculating the time series over a polygon, with a DataArray as input.
     
@@ -113,7 +113,16 @@ def extract_polygon_ts(ts_array, pd_row, buffer, crs):
     - pd_row: row input through df.itertuples()
     - buffer: how much inward buffer to aggregate the ndvi values should be taken (to remove edge effects)
     - crs: crs of the xarray & geometry in the row
+    - time_window: Year (e.g., 2022) to filter the time series
     '''
+        
+    # Convert time_window to datetime range for the specified year
+    start_date = f'{time_window}-01-01'
+    end_date = f'{time_window}-12-31'
+    
+    # Filter the ts_array to the specified year
+    ts_array = ts_array.sel(time=slice(start_date, end_date))
+    ts_array = ts_array.rio.set_spatial_dims(x_dim='X', y_dim='Y')
         
     df_ndvi = ts_array.time.to_dataframe()[['time']].reset_index(drop=True) # dataframe with the dates
     
@@ -123,15 +132,15 @@ def extract_polygon_ts(ts_array, pd_row, buffer, crs):
     if geometry.is_empty:
         print('Empty geometry')
         df_ndvi['ndvi'] = np.nan
-        df_ndvi['REF_ID'] = np.nan
-        df_ndvi['pointid'] = np.nan
+        df_ndvi['REF_ID'] = int(pd_row.REF_ID)
+        df_ndvi['pointid'] = pd_row.pointid
         return df_ndvi
     
     elif not geometry.is_valid:
         print('Invalid geometry')
         df_ndvi['ndvi'] = np.nan
-        df_ndvi['REF_ID'] = np.nan
-        df_ndvi['pointid'] = np.nan
+        df_ndvi['REF_ID'] = int(pd_row.REF_ID)
+        df_ndvi['pointid'] = pd_row.pointid
         return df_ndvi
     
     else:
@@ -140,24 +149,40 @@ def extract_polygon_ts(ts_array, pd_row, buffer, crs):
 
         # Create output dataframe
         df_ndvi['ndvi'] = ndvi
-        df_ndvi.insert(0, 'REF_ID', pd_row.REF_ID)
+        df_ndvi.insert(0, 'REF_ID', int(pd_row.REF_ID))
         df_ndvi.insert(1, 'pointid', pd_row.pointid)
         #df_ndvi.insert(-1, 'geometry', pd_row.geometry)
 
         return df_ndvi
 
+#----------------------------------------------------------------------------------------------------
 
+def ts_telcirkel_per_jaar(raster, gdf, year, pointid, df_ts):
 
+    gdf_agg = gdf.loc[(gdf.pointid == pointid) & (gdf.jaar == year)] #.to_crs('EPSG:32631') 
+
+    for row in gdf_agg.itertuples():
+        #print(row.geometry)
+        crs = gdf.crs
+
+        df_long = extract_polygon_ts(ts_array = raster, pd_row = row, buffer = -10, crs=crs, time_window = year)
+
+        if df_ts.empty:
+            df_ts = df_long
+        elif not df_long.empty:
+            df_ts = pd.concat([df_ts, df_long], axis=0)
+
+    return df_ts
 #----------------------------------------------------------------------------------------------------
 def bare_soil_calc(gdf):
     '''
     Function for calculating the percentage of bare soil in the 'telcirkel'
 
     Parameters:
-    - gdf with the following columns: OIDN, pointid, date, ndvi and geometry
+    - gdf with the following columns: REF_ID, pointid, date, ndvi and geometry
     '''
 
-    assert list(gdf.columns) == ['OIDN', 'pointid', 'date', 'ndvi','geometry']
+    assert list(gdf.columns) == ['REF_ID', 'pointid', 'date', 'ndvi','geometry']
     # periods buiten functie zetten eigenlijk
     periods = {
     'R1_2022': ('2022-04-01', '2022-04-20'),
@@ -178,14 +203,14 @@ def bare_soil_calc(gdf):
         period_data = gdf[(gdf['date'] >= start_date) & (gdf['date'] <= end_date)]
 
         # Calculate mean NDVI for each field within each pointid
-        mean_ndvi = period_data.groupby(['pointid', 'OIDN'])['ndvi'].mean().reset_index()
+        mean_ndvi = period_data.groupby(['pointid', 'REF_ID'])['ndvi'].mean().reset_index()
         mean_ndvi = mean_ndvi.rename(columns = {'ndvi' : 'ndvi_mean'})
         
         # Determine fields with mean NDVI < 0.3 as bare soil
         bare_soil_fields = mean_ndvi[mean_ndvi['ndvi_mean'] < 0.3]
         
         # Join back with period_data to calculate areas
-        bare_soil_data = pd.merge(bare_soil_fields, period_data, on=['pointid', 'OIDN'], how='inner')
+        bare_soil_data = pd.merge(bare_soil_fields, period_data, on=['pointid', 'REF_ID'], how='inner')
         bare_soil_data = gpd.GeoDataFrame(bare_soil_data, geometry = 'geometry')
 
         # Aggregate area of bare soil and total area for each pointid
