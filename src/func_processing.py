@@ -130,7 +130,7 @@ def extract_polygon_ts(ts_array, pd_row, buffer, crs, time_window):
     geometry = pd_row.geometry.buffer(buffer) # buffer before aggregation
 
     if geometry.is_empty:
-        print('Empty geometry')
+        #print('Empty geometry')
         df_ndvi['ndvi'] = np.nan
         df_ndvi['REF_ID'] = int(pd_row.REF_ID)
         df_ndvi['pointid'] = pd_row.pointid
@@ -183,7 +183,7 @@ def bare_soil_calc(gdf):
     - gdf with the following columns: REF_ID, pointid, date, ndvi and geometry
     '''
 
-    assert list(gdf.columns) == ['REF_ID', 'pointid', 'date', 'ndvi','geometry']
+    assert list(gdf.columns) == ['pointid', 'REF_ID', 'date', 'ndvi','geometry']
     # periods buiten functie zetten eigenlijk
     periods = {
     'R1_2022': ('2022-04-01', '2022-04-20'),
