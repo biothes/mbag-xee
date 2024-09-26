@@ -36,15 +36,15 @@ def addNDVI(image):
 def addBSI(image):
     # Calculate BSI using the formula:
     # BSI = ((B11 + B04) - (B08 + B02)) / ((B11 + B04) + (B08 + B02))
-    bsi = image.expression(
-        '((B11 + B04) - (B08 + B02)) / ((B11 + B04) + (B08 + B02))',
-        {
+    bsi = (image.expression(
+        expression = '((B11 + B04) - (B08 + B02)) / ((B11 + B04) + (B08 + B02))',
+        opt_map = {
             'B11': image.select('B11'),  # Assuming these are the correct band designations for Sentinel-2
             'B04': image.select('B4'),   # Red
             'B08': image.select('B8'),   # NIR
-            'B02': image.select('B2')    # Blue
-        }
-    ).rename('bsi')
+            'B02': image.select('B2')}    # Blue 
+        ).rename('bsi'))
+    
 
     # Scale the original image bands (this scaling factor of 0.0001 is typically
     # used for Sentinel-2 imagery to convert from Digital Number to reflectance)
