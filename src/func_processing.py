@@ -207,6 +207,7 @@ def bare_soil_format(df, gdf_year, year):
     #gdf.REF_ID = gdf.REF_ID.astype(int)
 
     return gdf
+
 #----------------------------------------------------------------------------------------------------
 def bare_soil_calc(gdf):
     '''
