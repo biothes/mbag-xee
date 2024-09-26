@@ -158,7 +158,16 @@ def extract_polygon_ts(ts_array, pd_row, buffer, crs, time_window):
 #----------------------------------------------------------------------------------------------------
 
 def ts_telcirkel_per_jaar(raster, gdf, year, pointid, df_ts):
-
+    '''
+    Function for calculating the time series for all parcels in a counting point.
+    
+    Parameters:
+    - raster: xarray.DataArray with the time series
+    - gdf: gdf with all parcels in Flanders for a certain year (should match the year in the 'year' parameter)
+    - year: year (e.g., 2022) to filter the time series
+    - pointid: id of the counting point we're processing
+    - df_ts: the dataframe we are adding the time series for every parcel & pointid combination to
+    '''
     gdf_agg = gdf.loc[(gdf.pointid == pointid) & (gdf.jaar == year)] #.to_crs('EPSG:32631') 
 
     for row in gdf_agg.itertuples():
@@ -174,6 +183,30 @@ def ts_telcirkel_per_jaar(raster, gdf, year, pointid, df_ts):
 
     return df_ts
 
+#----------------------------------------------------------------------------------------------------
+def bare_soil_format(df, gdf_year, year):
+    '''
+    Function to format the df_ts into a gdf, which is the correct formatting for the bare soil calculation.
+    
+    Parameters:
+    - df: dataframe with the time series for every parcel & poinid combination
+    - gdf_year: gdf with the parcels that should be added to df
+    - year: the year we're doing the processing for
+    '''
+    assert list(df.columns) == ['pointid', 'REF_ID', 'time', 'ndvi'], "Make sure that these are the column names: ['pointid', 'REF_ID', 'time', 'ndvi']"
+    assert isinstance(year, int), f"Input value must be an integer, got {type(year)} instead."
+
+    # Column rename & parse for the correct year
+    df = df.reset_index(drop=True).rename(columns = {'time': 'date'})
+    df = df.loc[df.date.dt.year == year]
+    gdf_year.REF_ID = gdf_year.REF_ID.astype('int64')
+
+    # Merge the df and gdf
+    gdf = df.merge(gdf_year[['REF_ID','pointid','geometry']], on = ['REF_ID','pointid'], how = 'left')
+    gdf = gpd.GeoDataFrame(gdf, geometry='geometry')
+    #gdf.REF_ID = gdf.REF_ID.astype(int)
+
+    return gdf
 #----------------------------------------------------------------------------------------------------
 def bare_soil_calc(gdf):
     '''
