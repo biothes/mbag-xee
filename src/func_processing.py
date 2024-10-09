@@ -219,6 +219,7 @@ def bare_soil_calc(gdf, vi_str, periods):
     Parameters:
     - gdf with the following columns: REF_ID, pointid, date, ndvi and geometry
     '''
+    
     assert vi_str in ['ndvi','bsi']
 
     if vi_str == 'ndvi':
@@ -238,7 +239,7 @@ def bare_soil_calc(gdf, vi_str, periods):
         mean_vi = period_data.groupby(['pointid', 'REF_ID'])[vi_str].mean().reset_index()
         mean_vi = mean_vi.rename(columns = {vi_str : 'vi_mean'})
         
-        # Determine fields with mean NDVI < 0.3 as bare soil
+        # Determine fields with mean NDVI < 0.3 or mean BSI >0.021 as bare soil
         if vi_str == 'ndvi':
             bare_soil_fields = mean_vi[mean_vi['vi_mean'] < 0.3]
         elif vi_str == 'bsi':
