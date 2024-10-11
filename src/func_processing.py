@@ -32,7 +32,7 @@ def time_series(start, end, start_wdw, end_wdw, shape, vi_arg, sg):
     #-- bbox around geometry
     bbox = box(shape.bounds[0],shape.bounds[1],shape.bounds[2],shape.bounds[3])
     gdf = gpd.GeoDataFrame(geometry=[bbox], crs = 4326).to_crs('EPSG:32631')
-    gdf['geometry'] = gdf.geometry.buffer(20)
+    gdf['geometry'] = gdf.geometry.buffer(50)
     roi = geemap.geopandas_to_ee(gdf)
     print('crs roi', gdf.crs)
 
