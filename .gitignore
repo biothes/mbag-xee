@@ -23,3 +23,19 @@ ipython_config.py
 
 # QGIS
 *.qgz
+data/raw/gewichten_kempen.csv
+data/raw/gewichten_oostelijke_leemstreek.csv
+data/raw/gewichten_polders.csv
+data/raw/gewichten_weidestreek.csv
+data/raw/gewichten_westelijke_leemstreek.csv
+data/raw/gewichten_zandleemstreek.csv
+data/raw/gewichten_zandstreek.csv
+data/raw/steekproef_avimap_mbag_mas.csv
+data/raw/steekproef_avimap_mbag_piloot.csv
+data/raw/steekproef_mbag_mas.csv
+data/raw/steekproef_mbag_piloot.csv
+data/raw/steekproefkader_mbag_mas.csv
+data/raw/steekproefkader_mbag_piloot.csv
+data/raw/steekproef_mbag_mas.csv
+data/raw/steekproef_mbag_mas.csv
+data/raw/README.txt

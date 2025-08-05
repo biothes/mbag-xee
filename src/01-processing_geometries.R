@@ -40,9 +40,8 @@ telpunt_to_telcirkel <- function(input_csv, buffer_distance = 300) {
   # Step 3: Buffer the points by the specified distance (default 300 meters)
   df_pts_buffered <- st_buffer(df_pts, dist = buffer_distance)
   
-  # Step 4: Write to file
-  #make if else
-  
+  # Step 4: Write to file for visualization
+  st_write(df_pts_buffered, dsn = "../data/processed/telcirkels_viz.gpkg", append=FALSE)
   
   # Step 5: Return points
   return(df_pts_buffered)
@@ -85,48 +84,32 @@ intersect_parcels <- function(layer_name, telcirkels) {
     OUTPUT = file.path(Q_schijf_output, paste0(layer_name, '_clip', '.gpkg')),
     .quiet = TRUE
   )
-  
-  # 3) Buffer (to remove line geometries) -> mag weg wanneer kaartlaag opgekuist is
-  result <- qgis_run_algorithm(
-    "native:buffer",
-    INPUT = result$OUTPUT,
-    DISTANCE = -2
-  ) |>
-    st_as_sf() |>
-    filter(!st_is_empty(geom)) #filter empty geometries
-  
-  buffer_result <- qgis_run_algorithm(
-    "native:buffer",
-    INPUT = result,
-    DISTANCE = 2,
-    OUTPUT = file.path(Q_schijf_output, paste0(layer_name, '_clip', '.gpkg'))
-  )
 }
 
 #---- Execute ----
 
 # Download telpunten van Zenodo
 download_path <- '../data/raw'
-zenodo_doi <- '10.5281/zenodo.10890741'  # Replace with the actual Zenodo DOI
-file_name <- 'Beaver_territories.csv' #to do: change to 'steekproef_mbag_mas.csv'
+zenodo_doi <- '10.5281/zenodo.16614734'
+file_name <- 'steekproef_avimap_mbag_mas.csv'
 
 download_from_zenodo(download_path, zenodo_doi, file_name)
 
 
 # Omzetten van de telpunten naar telcirkels(buffer)
-input_csv <- "../data/raw/steekproef_mbag_mas.csv"
+input_csv <- file.path(download_path, file_name)
 
 df_tc <- telpunt_to_telcirkel(input_csv, buffer_distance = 300)
 
 
-
 # Nu QGIS processing gebruiken om de verschillende kaartlagen te clippen naar df_tc
-
 Q_schijf <- 'Q:/Projects/PRJ_MBAG/4a_mas/verzamelaanvraag/processed'
-Q_schijf_output <- 'Q:/Projects/PRJ_MBAG/4d_bwk/tijdsreeksen'
+Q_schijf_output <- 'Q:/Projects/PRJ_MBAG/4d_bwk/project-telcirkels'
+
 
 intersect_parcels(layer_name = 'landbouwgebruikspercelen_cut_bo_2022', telcirkels = df_tc)
 intersect_parcels(layer_name = 'landbouwgebruikspercelen_cut_bo_2023', telcirkels = df_tc)
+intersect_parcels(layer_name = 'landbouwgebruikspercelen_cut_bo_2024', telcirkels = df_tc)
 
 
 
