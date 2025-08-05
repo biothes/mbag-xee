@@ -8,7 +8,7 @@ BUFFER = 40
 
 def get_s2(aoi, start_date, end_date):
     # Import and filter S2 SR.
-    s2_sr_col = (ee.ImageCollection('COPERNICUS/S2_SR')
+    s2_sr_col = (ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
         .filterBounds(aoi)
         .filterDate(start_date, end_date)
         .filter(ee.Filter.lte('CLOUDY_PIXEL_PERCENTAGE', CLOUD_FILTER)))
