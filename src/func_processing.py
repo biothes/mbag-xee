@@ -32,7 +32,7 @@ def time_series(start, end, start_wdw, end_wdw, shape, vi_arg, sg):
     #-- bbox around geometry
     bbox = box(shape.bounds[0],shape.bounds[1],shape.bounds[2],shape.bounds[3])
     gdf = gpd.GeoDataFrame(geometry=[bbox], crs = 4326).to_crs('EPSG:32631')
-    gdf['geometry'] = gdf.geometry.buffer(20)
+    gdf['geometry'] = gdf.geometry.buffer(50)
     roi = geemap.geopandas_to_ee(gdf)
     print('crs roi', gdf.crs)
 
@@ -124,36 +124,39 @@ def extract_polygon_ts(ts_array, pd_row, buffer, crs, time_window):
     ts_array = ts_array.sel(time=slice(start_date, end_date))
     ts_array = ts_array.rio.set_spatial_dims(x_dim='X', y_dim='Y')
         
-    df_ndvi = ts_array.time.to_dataframe()[['time']].reset_index(drop=True) # dataframe with the dates
+    df_vi = ts_array.time.to_dataframe()[['time']].reset_index(drop=True) # dataframe with the dates
     
     # Aggregation step
     geometry = pd_row.geometry.buffer(buffer) # buffer before aggregation
 
+    #vi
+    vi_str = ts_array.attrs['id']
+
     if geometry.is_empty:
         #print('Empty geometry')
-        df_ndvi['ndvi'] = np.nan
-        df_ndvi['REF_ID'] = int(pd_row.REF_ID)
-        df_ndvi['pointid'] = pd_row.pointid
-        return df_ndvi
+        df_vi[vi_str] = np.nan
+        df_vi['REF_ID'] = int(pd_row.REF_ID)
+        df_vi['pointid'] = pd_row.pointid
+        return df_vi
     
     elif not geometry.is_valid:
         print('Invalid geometry')
-        df_ndvi['ndvi'] = np.nan
-        df_ndvi['REF_ID'] = int(pd_row.REF_ID)
-        df_ndvi['pointid'] = pd_row.pointid
-        return df_ndvi
+        df_vi[vi_str] = np.nan
+        df_vi['REF_ID'] = int(pd_row.REF_ID)
+        df_vi['pointid'] = pd_row.pointid
+        return df_vi
     
     else:
         ts_array_clip = ts_array.rio.clip([geometry], crs, all_touched = True) #geometry moet in een lijst zitten --> dus loop maken met alle polygons...
         ndvi = ts_array_clip.mean(dim=('X', 'Y')).values
 
         # Create output dataframe
-        df_ndvi['ndvi'] = ndvi
-        df_ndvi.insert(0, 'REF_ID', int(pd_row.REF_ID))
-        df_ndvi.insert(1, 'pointid', pd_row.pointid)
+        df_vi[vi_str] = ndvi
+        df_vi.insert(0, 'REF_ID', int(pd_row.REF_ID))
+        df_vi.insert(1, 'pointid', pd_row.pointid)
         #df_ndvi.insert(-1, 'geometry', pd_row.geometry)
 
-        return df_ndvi
+        return df_vi
 
 #----------------------------------------------------------------------------------------------------
 
@@ -184,7 +187,7 @@ def ts_telcirkel_per_jaar(raster, gdf, year, pointid, df_ts):
     return df_ts
 
 #----------------------------------------------------------------------------------------------------
-def bare_soil_format(df, gdf_year, year):
+def bare_soil_format(df, gdf_year, year, vi_str):
     '''
     Function to format the df_ts into a gdf, which is the correct formatting for the bare soil calculation.
     
@@ -193,7 +196,7 @@ def bare_soil_format(df, gdf_year, year):
     - gdf_year: gdf with the parcels that should be added to df
     - year: the year we're doing the processing for
     '''
-    assert list(df.columns) == ['pointid', 'REF_ID', 'time', 'ndvi'], "Make sure that these are the column names: ['pointid', 'REF_ID', 'time', 'ndvi']"
+    assert list(df.columns) == ['pointid', 'REF_ID', 'time', vi_str], "Make sure that these are the column names: ['pointid', 'REF_ID', 'time', vi_str]"
     assert isinstance(year, int), f"Input value must be an integer, got {type(year)} instead."
 
     # Column rename & parse for the correct year
@@ -209,25 +212,20 @@ def bare_soil_format(df, gdf_year, year):
     return gdf
 
 #----------------------------------------------------------------------------------------------------
-def bare_soil_calc(gdf):
+def bare_soil_calc(gdf, vi_str, periods):
     '''
     Function for calculating the percentage of bare soil in the 'telcirkel'
 
     Parameters:
     - gdf with the following columns: REF_ID, pointid, date, ndvi and geometry
     '''
+    
+    assert vi_str in ['ndvi','bsi']
 
-    assert list(gdf.columns) == ['pointid', 'REF_ID', 'date', 'ndvi','geometry']
-    # periods buiten functie zetten eigenlijk
-    periods = {
-    'R1_2022': ('2022-04-01', '2022-04-20'),
-    'R2_2022': ('2022-04-21', '2022-05-10'),
-    'R3_2022': ('2022-05-11', '2022-06-10'),
-    'R4_2022': ('2022-06-21', '2022-07-15'),
-    'R1_2023': ('2023-04-01', '2023-04-20'),
-    'R2_2023': ('2023-04-21', '2023-05-10'),
-    'R3_2023': ('2023-05-11', '2023-06-10'),
-    'R4_2023': ('2023-06-21', '2023-07-15')}
+    if vi_str == 'ndvi':
+        assert list(gdf.columns) == ['pointid', 'REF_ID', 'date', 'ndvi','geometry']
+    if vi_str == 'bsi':
+        assert list(gdf.columns) == ['pointid', 'REF_ID', 'date', 'bsi','geometry']
 
     # Initialize a list to store the results
     results = []
@@ -238,11 +236,14 @@ def bare_soil_calc(gdf):
         period_data = gdf[(gdf['date'] >= start_date) & (gdf['date'] <= end_date)]
 
         # Calculate mean NDVI for each field within each pointid
-        mean_ndvi = period_data.groupby(['pointid', 'REF_ID'])['ndvi'].mean().reset_index()
-        mean_ndvi = mean_ndvi.rename(columns = {'ndvi' : 'ndvi_mean'})
+        mean_vi = period_data.groupby(['pointid', 'REF_ID'])[vi_str].mean().reset_index()
+        mean_vi = mean_vi.rename(columns = {vi_str : 'vi_mean'})
         
-        # Determine fields with mean NDVI < 0.3 as bare soil
-        bare_soil_fields = mean_ndvi[mean_ndvi['ndvi_mean'] < 0.3]
+        # Determine fields with mean NDVI < 0.3 or mean BSI >0.021 as bare soil
+        if vi_str == 'ndvi':
+            bare_soil_fields = mean_vi[mean_vi['vi_mean'] < 0.3]
+        elif vi_str == 'bsi':
+            bare_soil_fields = mean_vi[mean_vi['vi_mean'] > 0.021] #Castaldi et al. (2023)
         
         # Join back with period_data to calculate areas
         bare_soil_data = pd.merge(bare_soil_fields, period_data, on=['pointid', 'REF_ID'], how='inner')
