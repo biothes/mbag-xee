@@ -79,18 +79,38 @@ def time_series(start, end, start_wdw, end_wdw, shape, vi_arg, sg):
     if sg == True:
         #-- Savgol filter
         # Define a function to apply Savitzky-Golay filter using scipy
-        def savgol_filter_func(data, window_length=5, polyorder=2):
-            return savgol_filter(data, window_length, polyorder)
+        def apply_savgol_to_1d(arr, window_length=5, polyorder=2):
+            """
+            Applies the Savitzky-Golay filter to a 1D numpy array,
+            ignoring NaN values.
+            """
+            if np.isnan(arr).all():
+                return arr
+            
+            # Get indices of non-NaN values
+            not_nan_indices = ~np.isnan(arr)
+            
+            # Apply filter to non-NaN values
+            filtered_values = savgol_filter(arr[not_nan_indices], window_length, polyorder)
+            
+            # Create an output array with the original size
+            output_arr = np.full_like(arr, np.nan)
+            
+            # Place filtered values back in their original positions
+            output_arr[not_nan_indices] = filtered_values
+            
+            return output_arr
 
 
         # Apply Savitzky-Golay filter along the 'time' dimension
         filtered_da = xarray.apply_ufunc(
-            savgol_filter_func,  # Function to apply
+            apply_savgol_to_1d,  # Function to apply
             time_series_regular,  # Input dataset
-            input_core_dims=[['time']],  # Specify core dimensions
+            input_core_dims=[['time']],  # Loop over x and y and apply function along time dimension
+            output_core_dims=[['time']], # It tells xarray to expect a 1D array of the same size as the input's time dimension from your function
+            exclude_dims={'time'}, #argument is used to prevent apply_ufunc from trying to align the time dimension between multiple input arrays
             dask='parallelized',  # Use parallelized computation if using dask arrays
             output_dtypes=[float],  # Output datatype
-            output_core_dims=[['time']],
             vectorize=True,  # Vectorize the operation
             keep_attrs=True)  # Keep the original attributes of the dataset
         
