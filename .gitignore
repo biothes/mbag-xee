@@ -44,3 +44,5 @@ data/raw/steekproef_mbag_mas.csv
 src/.Rhistory
 data/raw/steekproef_mbag_mas.csv
 data/raw/steekproef_mbag_mas.csv
+outputs/output_analysis/time_series_mas_ndvi.csv
+src/.Rhistory
