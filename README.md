@@ -30,7 +30,7 @@ Om het script zelf te runnen pas je best de settings vanboven in de notebook aan
 --
 Het doel van dit script is om de rasters die per telpunt werden gedownload om te zetten naar tijdsreeksen per landbouwveld in een buffer van 300m. Hiervooor hebben we de gedownloade rasters nodig uit stap 2 en de geclipte landbouwvelden uit stap 1. Omdat de landbouwvelden per jaar kunnen verschillen, worden deze tijdsreeksen jaar per jaar verwerkt. Bijvoorbeeld, als we in stap 2 tijdsreeksen downloadden tussen 2022-2024, dan gebruiken we de landbouwpercelen uit 2022 om de rasterdata uit 2022 te aggregeren per veld, enzovoort.
 
-Nadat de tijdsreeksen per veld werden geaggregeerd wordt er een berekening gedaan van het percentage naakte bodem in elke telperiode. Voor meer details van deze berekening, kan je kijken naar de `bare_soil_calc`functie in het script `func_processing`. Ook als je de thresholds zou willen aanpassen van wanneer iets als naakte bodem gerekend wordt, kan je dat in deze functie doen
+Nadat de tijdsreeksen per veld werden geaggregeerd wordt er een berekening gedaan van het percentage naakte bodem in elke telperiode. Voor meer details van deze berekening, kan je kijken naar de `bare_soil_calc`functie in het script `func_processing`. Ook als je de thresholds zou willen aanpassen van wanneer iets als naakte bodem gerekend wordt, kan je dat in deze functie aanpassen.
 
 
 Om het script zelf te runnen pas je opnieuw de settings aan zoals gewenst:
