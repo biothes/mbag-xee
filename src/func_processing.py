@@ -31,6 +31,7 @@ def time_series(start, end, start_wdw, end_wdw, shape, vi_arg, sg):
 
     #-- bbox around geometry
     bbox = box(shape.bounds[0],shape.bounds[1],shape.bounds[2],shape.bounds[3])
+    print('bbox', bbox)
     gdf = gpd.GeoDataFrame(geometry=[bbox], crs = 4326).to_crs('EPSG:32631')
     gdf['geometry'] = gdf.geometry.buffer(50)
     roi = geemap.geopandas_to_ee(gdf)
@@ -38,9 +39,12 @@ def time_series(start, end, start_wdw, end_wdw, shape, vi_arg, sg):
 
     #-- Masking
     startDate = ee.Date(start)
+    print('startDate', startDate)
     endDate = ee.Date(end)
+    print('endDate', endDate)
 
     s2 = get_s2(roi, startDate, endDate)
+    print('s2 size', s2.size().getInfo())
     s2_shdw = s2.map(add_cld_shdw_mask)
     s2_mask = s2_shdw.map(apply_mask)
     
@@ -108,6 +112,7 @@ def time_series(start, end, start_wdw, end_wdw, shape, vi_arg, sg):
             time_series_regular,  # Input dataset
             input_core_dims=[['time']],  # Loop over x and y and apply function along time dimension
             output_core_dims=[['time']], # It tells xarray to expect a 1D array of the same size as the input's time dimension from your function
+            dask_gufunc_kwargs={'output_sizes': {'time': len(time_series_regular.time)}},
             exclude_dims={'time'}, #argument is used to prevent apply_ufunc from trying to align the time dimension between multiple input arrays
             dask='parallelized',  # Use parallelized computation if using dask arrays
             output_dtypes=[float],  # Output datatype
