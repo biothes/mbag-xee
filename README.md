@@ -3,6 +3,10 @@ Maken van vegetatie-index tijdreeksen voor telpunten met gebruik van [Xarray Ear
 
 Om tijdsreeksen af te halen volstaat het om drie opeenvolgende scripts te runnen, deze scripts zijn aangeduid met cijfers 1-3.
 
+Citation info
+--
+Vanpoucke, K., & Heremans, S. (2025). MBAG-XEE [Computer software]. https://github.com/biothes/mbag-xee
+
 01-processing_geometries.R
 --
 Dit script bestaat uit drie opeenvolgende stappen, met als doel alle percelen in een straal van 300m rond de telpunten vergkrijgen. Hiervoor hebben we eerst het bestand met alle telpunen nodig, dat we van Zenodo kunnen downloaden. Vervolgens wordt er een buffer genomen van 300m rond elk van deze telpunten. In de laatste stap wordt er dan een intersectie genomen tussen deze gebufferde telpunten en de landbouwgebruikspercelen. Elk van de percelen krijgt ook een pointid toegekend, dat overeenstemt met het id van het telpunt.
